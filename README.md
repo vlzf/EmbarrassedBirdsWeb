@@ -1,6 +1,6 @@
-# rg4-web
+# Embarrassed Birds
 
-> A Vue.js project
+> vue 多页面应用
 
 ## Build Setup
 
