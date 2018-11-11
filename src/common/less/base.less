@@ -1,0 +1,46 @@
+@red:  #f41d20;
+@yellow: #f7f384;
+@green: #96fa69;
+@blue: #05a5fb;
+
+.red {
+  color: @red;
+}
+.yellow {
+  color: @yellow;
+}
+.green {
+  color: @green;
+}
+.blue {
+  color: @blue;
+}
+
+
+i.border-style {
+  display: block;
+  width: 25px;
+  height: 15px;
+  position: absolute;
+  border: 0 solid @blue;
+
+  @BorderWidth: 2px;
+  .createBorder(@Direction1, @Direction2){
+    border-@{Direction1}-width: @BorderWidth;
+    border-@{Direction2}-width: @BorderWidth;
+    @{Direction1}: -@BorderWidth;
+    @{Direction2}: -@BorderWidth;
+  }
+  &.border-style-left-top {
+    .createBorder(left, top);
+  }
+  &.border-style-right-top {
+    .createBorder(right, top);
+  }
+  &.border-style-left-bottom {
+    .createBorder(left, bottom);
+  }
+  &.border-style-right-bottom {
+    .createBorder(right, bottom);
+  }
+}

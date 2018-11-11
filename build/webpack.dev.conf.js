@@ -9,6 +9,8 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
+var glob = require('glob')
+
 
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
@@ -52,11 +54,11 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     new webpack.NamedModulesPlugin(), // HMR shows correct file names in console on update.
     new webpack.NoEmitOnErrorsPlugin(),
     // https://github.com/ampedandwired/html-webpack-plugin
-    new HtmlWebpackPlugin({
-      filename: 'index.html',
-      template: 'index.html',
-      inject: true
-    }),
+    // new HtmlWebpackPlugin({
+    //   filename: 'index.html',
+    //   template: 'index.html',
+    //   inject: true
+    // }),
     // copy custom static assets
     new CopyWebpackPlugin([
       {
@@ -67,6 +69,50 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     ])
   ]
 })
+
+
+function getEntry(globPath) {
+  var entries = {},
+    basename, tmp, pathname;
+  if (typeof (globPath) != "object") {
+    globPath = [globPath]
+  }
+  globPath.forEach((itemPath) => {
+    glob.sync(itemPath).forEach(function (entry) {
+      basename = path.basename(entry, path.extname(entry));
+      if (entry.split('/').length > 4) {
+        tmp = entry.split('/').splice(-3);
+        pathname = tmp.splice(0, 1) + '/' + basename; // 正确输出js和html的路径
+        entries[pathname] = entry;
+      } else {
+        entries[basename] = entry;
+      }
+    });
+  });
+  return entries;
+}
+
+var pages = getEntry(['./src/module/*.html','./src/module/**/*.html'])
+
+for (var pathname in pages) {
+  // 配置生成的html文件，定义路径等
+  var conf = {
+    filename: pathname + '.html',
+    template: pages[pathname],   // 模板路径
+    inject: true,              // js插入位置
+    // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+    chunksSortMode: 'dependency'
+
+  };
+  if (pathname in devWebpackConfig.entry) {
+    conf.chunks = ['manifest', 'vendor', pathname];
+    conf.hash = true;
+  }
+  devWebpackConfig.plugins.push(new HtmlWebpackPlugin(conf));
+}
+
+
+
 
 module.exports = new Promise((resolve, reject) => {
   portfinder.basePort = process.env.PORT || config.dev.port
